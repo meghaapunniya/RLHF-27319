@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dental Hygiene Widget</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+        <style>
+        body { font-family: 'Arial', sans-serif; background: #e6f7ff; }
+        .widget {
+            width: 300px; margin: 20px auto; padding: 20px; 
+            background: white; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .widget h2 { color: #4a90e2; }
+        .input-group { margin: 10px 0; }
+        .input-group label { display: block; margin-bottom: 5px; }
+        .input-group input { width: 90%; padding: 5px; }
+        .btn { background-color: #4a90e2; color: white; border: none; padding: 10px 15px; cursor: pointer; }
+        .progress { margin-top: 20px; }
+        .tip { background: #f0f8ff; padding: 10px; margin-top: 10px; border-left: 4px solid #4a90e2; }
+        #progressChart { width: 100%; height: 150px; }
+        .checkbox-group { margin: 10px 0; }
+        .checkbox-group label { display: inline-block; margin-right: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="widget" id="dentalWidget">
+    <h2>🦷 Dental Care</h2>
+    <div class="input-group">
+        <label for="morningBrushTime">Morning Brush Time:</label>
+        <input type="text" id="morningBrushTime" placeholder="Select Time">
+    </div>
+    <div class="input-group">
+        <label for="eveningBrushTime">Evening Brush Time:</label>
+        <input type="text" id="eveningBrushTime" placeholder="Select Time">
+    </div>
+    <div class="input-group">
+        <label for="flossTime">Floss Time:</label>
+        <input type="text" id="flossTime" placeholder="Select Time">
+    </div>
+    <div class="input-group">
+        <label for="mouthwashTime">Mouthwash Time:</label>
+        <input type="text" id="mouthwashTime" placeholder="Select Time">
+    </div>
+    <button class="btn" onclick="setReminders()">Set Reminders</button>
+    <div id="reminders"></div>
+    
+    <h3>Today's Activities</h3>
+    <div class="checkbox-group">
+        <label><input type="checkbox" id="morningBrush" onclick="updateChart()"> Morning Brush</label>
+        <label><input type="checkbox" id="eveningBrush" onclick="updateChart()"> Evening Brush</label>
+        <label><input type="checkbox" id="floss" onclick="updateChart()"> Floss</label>
+        <label><input type="checkbox" id="mouthwash" onclick="updateChart()"> Mouthwash</label>
+    </div>
+    
+    <div class="progress">
+        <h3>Weekly Progress</h3>
+        <canvas id="progressChart"></canvas>
+    </div>
+    <div class="tip" id="dentalTip"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    flatpickr("#morningBrushTime", {enableTime: true, noCalendar: true, dateFormat: "H:i"});
+    flatpickr("#eveningBrushTime", {enableTime: true, noCalendar: true, dateFormat: "H:i"});
+    flatpickr("#flossTime", {enableTime: true, noCalendar: true, dateFormat: "H:i"});
+    flatpickr("#mouthwashTime", {enableTime: true, noCalendar: true, dateFormat: "H:i"});
+
+    const reminders = document.getElementById('reminders');
+    const dentalTips = [
+        "Brush for at least two minutes to ensure all teeth are cleaned.",
+        "Floss daily to remove plaque from places your toothbrush can't reach.",
+        "Using mouthwash can help reduce acid in the mouth and clean hard-to-brush areas.",
+        "Replace your toothbrush every 3-4 months or sooner if bristles are frayed.",
+        "Visit your dentist for regular check-ups and cleanings twice a year."
+    ];
+
+    let chart;
+    const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const activities = ['Morning Brush', 'Evening Brush', 'Floss', 'Mouthwash'];
+    const chartData = {
+        labels: weekDays,
+        datasets: activities.map((activity, index) => ({
+            label: activity,
+            data: Array(7).fill(0),
+            borderColor: `hsl(${index * 90}, 70%, 60%)`,
+            fill: false
+        }))
+    };
+
+    function setReminders() {
+    const times = {
+        'Morning Brush': document.getElementById('morningBrushTime').value,
+        'Evening Brush': document.getElementById('eveningBrushTime').value,
+        'Floss': document.getElementById('flossTime').value,
+        'Mouthwash': document.getElementById('mouthwashTime').value
+    };
+
+    reminders.innerHTML = Object.entries(times)
+        .map(([activity, time]) => `<p>Reminder set for ${activity} at ${time}</p>`)
+        .join('');
+
+    // Set up toastr notifications
+    Object.entries(times).forEach(([activity, time]) => {
+        if (time) {  // Ensure time is provided
+            const [hours, minutes] = time.split(':');
+            const reminderTime = new Date();
+            reminderTime.setHours(hours, minutes, 0);
+
+            const now = new Date();
+            let delay = reminderTime - now;
+            if (delay < 0) delay += 24 * 60 * 60 * 1000; // if time has passed, set for next day
+
+            setTimeout(() => {
+                toastr.info(`Time to ${activity}!`, 'Dental Care Reminder');
+            }, delay);
+        }
+    });
+}
+
+    function showRandomTip() {
+        const tip = dentalTips[Math.floor(Math.random() * dentalTips.length)];
+        document.getElementById('dentalTip').textContent = tip;
+    }
+
+    function updateChart() {
+    const today = new Date().getDay();
+    const dayIndex = today === 0 ? 6 : today - 1; // adjust Sunday to be last
+
+    const checkboxIds = {
+        'Morning Brush': 'morningBrush',
+        'Evening Brush': 'eveningBrush',
+        'Floss': 'floss',
+        'Mouthwash': 'mouthwash'
+    };
+
+    activities.forEach((activity, index) => {
+        const checkbox = document.getElementById(checkboxIds[activity]);
+        if (checkbox && checkbox.checked) {
+            chart.data.datasets[index].data[dayIndex] = 1;
+        } else {
+            chart.data.datasets[index].data[dayIndex] = 0;
+        }
+    });
+
+    chart.update();
+}
+
+
+    function initChart() {
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: chartData,
+            options: { 
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1,
+                        ticks: {
+                            stepSize: 1,
+                            callback: function(value) {
+                                return value === 1 ? 'Done' : 'Not Done';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    initChart();
+    showRandomTip();
+
+    // Refresh tip daily
+    setInterval(showRandomTip, 24 * 60 * 60 * 1000);
+</script>
+
+</body>
+</html>
