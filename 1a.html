@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dental Hygiene Widget</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+    <style>
+      body {
+        font-family: 'Arial', sans-serif;
+        background: #e6f7ff;
+      }
+      .widget {
+        width: 300px;
+        margin: 20px auto;
+        padding: 20px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .widget h2 {
+        color: #4a90e2;
+      }
+      .input-group {
+        margin: 10px 0;
+      }
+      .input-group label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      .input-group input {
+        width: 90%;
+        padding: 5px;
+      }
+      .btn {
+        background-color: #4a90e2;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        cursor: pointer;
+      }
+      .progress {
+        margin-top: 20px;
+      }
+      .tip {
+        background: #f0f8ff;
+        padding: 10px;
+        margin-top: 10px;
+        border-left: 4px solid #4a90e2;
+      }
+      #progressChart {
+        width: 100%;
+        height: 150px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="widget" id="dentalWidget">
+      <h2>🦷 Dental Care</h2>
+      <div class="input-group">
+        <label for="brushTime">Set Brush Time:</label>
+        <input type="text" id="brushTime" placeholder="Select Time" />
+      </div>
+      <div class="input-group">
+        <label for="flossTime">Set Floss Time:</label>
+        <input type="text" id="flossTime" placeholder="Select Time" />
+      </div>
+      <button class="btn" onclick="setReminders()">Set Reminders</button>
+      <div id="reminders"></div>
+      <div class="progress">
+        <h3>Progress</h3>
+        <canvas id="progressChart"></canvas>
+      </div>
+      <div class="tip" id="dentalTip"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      flatpickr('#brushTime', {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: 'H:i',
+      });
+      flatpickr('#flossTime', {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: 'H:i',
+      });
+
+      const reminders = document.getElementById('reminders');
+      const dentalTips = [
+        'Brush for at least two minutes to ensure all teeth are cleaned.',
+        "Floss daily to remove plaque from places your toothbrush can't reach.",
+        'Using mouthwash can help reduce acid in the mouth and clean hard-to-brush areas.',
+      ];
+
+      function setReminders() {
+        reminders.innerHTML = `<p>Reminder set for brushing at ${
+          document.getElementById('brushTime').value
+        }</p>
+        <p>Reminder set for flossing at ${
+          document.getElementById('flossTime').value
+        }</p>`;
+      }
+
+      function showRandomTip() {
+        const tip = dentalTips[Math.floor(Math.random() * dentalTips.length)];
+        document.getElementById('dentalTip').textContent = tip;
+      }
+
+      // Simulated data for demonstration
+      const ctx = document.getElementById('progressChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          datasets: [
+            {
+              label: 'Brushing Days',
+              data: [1, 2, 2, 2, 1, 2, 2],
+              borderColor: 'rgba(75, 192, 192, 1)',
+              fill: false,
+            },
+          ],
+        },
+        options: { responsive: true },
+      });
+
+      showRandomTip();
+    </script>
+  </body>
+</html>

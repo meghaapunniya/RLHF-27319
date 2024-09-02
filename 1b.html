@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Oral Hygiene Reminder Widget</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    />
+    <style>
+      body {
+        padding: 20px;
+      }
+      .form-control {
+        margin-bottom: 10px;
+      }
+      #chart {
+        width: 100%;
+        height: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Oral Hygiene Tracker</h1>
+      <form id="settingsForm">
+        <label>Brush Morning Time:</label>
+        <input type="time" id="morningTime" class="form-control" />
+        <label>Brush Evening Time:</label>
+        <input type="time" id="eveningTime" class="form-control" />
+        <label>Floss Time:</label>
+        <input type="time" id="flossTime" class="form-control" />
+        <button type="submit" class="btn btn-primary">Save Settings</button>
+      </form>
+      <div id="reminders">
+        <!-- Reminders will be displayed here -->
+      </div>
+      <div id="progress">
+        <canvas id="chart"></canvas>
+      </div>
+      <div id="tips">
+        <!-- Dental hygiene tips will be displayed here -->
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/min/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        const remindersDiv = $('#reminders');
+        const chartDiv = $('#chart');
+        const tipsDiv = $('#tips');
+        const settingsForm = $('#settingsForm');
+
+        // Load user settings or set defaults
+        const userSettings = JSON.parse(
+          localStorage.getItem('oralHygieneSettings')
+        ) || { morningTime: '07:00', eveningTime: '21:00', flossTime: '21:30' };
+        $('#morningTime').val(userSettings.morningTime);
+        $('#eveningTime').val(userSettings.eveningTime);
+        $('#flossTime').val(userSettings.flossTime);
+
+        settingsForm.submit(function (event) {
+          event.preventDefault();
+          const newSettings = {
+            morningTime: $('#morningTime').val(),
+            eveningTime: $('#eveningTime').val(),
+            flossTime: $('#flossTime').val(),
+          };
+          localStorage.setItem(
+            'oralHygieneSettings',
+            JSON.stringify(newSettings)
+          );
+          alert('Settings saved!');
+
+          // Update reminders based on new settings
+          updateReminders(newSettings);
+        });
+
+        function updateReminders(settings) {
+          const now = moment();
+          const reminders = [];
+          ['morningTime', 'eveningTime', 'flossTime'].forEach((time) => {
+            const reminderTime = moment(settings[time], 'HH:mm');
+            if (now.isBefore(reminderTime)) {
+              reminders.push(
+                `Reminder to ${time === 'flossTime' ? 'floss' : 'brush'} at ${
+                  settings[time]
+                }.`
+              );
+            }
+          });
+
+          remindersDiv.html(reminders.join('<br>'));
+        }
+
+        // Initialize chart
+        const ctx = chartDiv[0].getContext('2d');
+        const chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: [], // Dates will go here
+            datasets: [
+              {
+                label: 'Brushing/Flossing Frequency',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                data: [], // Data points will be added here
+              },
+            ],
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+          },
+        });
+
+        // Dummy data for tips - This should be replaced with actual tips
+        tipsDiv.html('Brush twice a day for at least two minutes each time.');
+
+        // Initial reminders update
+        updateReminders(userSettings);
+      });
+    </script>
+  </body>
+</html>
